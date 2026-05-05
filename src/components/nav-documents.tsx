@@ -51,7 +51,7 @@ export function NavDocuments({ items }: { items: { name: string; url: string; ic
                   <span>Share</span>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem variant="destructive">
+                <DropdownMenuItem className="text-destructive">
                   <IconTrash />
                   <span>Delete</span>
                 </DropdownMenuItem>
