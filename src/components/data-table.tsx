@@ -122,7 +122,7 @@ export const schema = z.object({
   // reviewer: z.string(),
 });
 import { useState } from "react";
-import { api } from "@/lib/axios";
+import { api } from "@/lib/api";
 import { useMutation } from "@tanstack/react-query";
 import { TaskPriority, TaskStatus } from "@/utils/enums";
 import { DialogClose } from "@radix-ui/react-dialog";
@@ -417,7 +417,6 @@ export function DataTable({
             <Select>
               <SelectTrigger
                 className="w-38 **:data-[slot=select-value]:block **:data-[slot=select-value]:truncate"
-                size="sm"
                 id={`${row.original.id}-reviewer`}
               >
                 <SelectValue placeholder="Assign reviewer" />
@@ -453,7 +452,7 @@ export function DataTable({
             <DropdownMenuItem>Favorite</DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem
-              variant="destructive"
+              className="text-destructive"
               onClick={() => handleDelete.mutate(row.id)}
             >
               Delete
@@ -565,7 +564,6 @@ export function DataTable({
         <Select defaultValue="outline">
           <SelectTrigger
             className="flex w-fit @4xl/main:hidden"
-            size="sm"
             id="view-selector"
           >
             <SelectValue placeholder="Select a view" />
@@ -837,7 +835,7 @@ export function DataTable({
                   table.setPageSize(Number(value));
                 }}
               >
-                <SelectTrigger size="sm" className="w-20" id="rows-per-page">
+                <SelectTrigger className="w-20" id="rows-per-page">
                   <SelectValue
                     placeholder={table.getState().pagination.pageSize}
                   />
