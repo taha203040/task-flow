@@ -37,6 +37,14 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
   useEffect(() => {
     (async () => {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      const { getMockUser } = await import("@/lib/mockAuth");
+      const mock = getMockUser();
+      if (mock) {
+        setEmail(mock.email);
+        setUsername(mock.username);
+        return;
+      }
       try {
         const res = await api.get("/users/info/", { withCredentials: true });
         if (res.status === 200) {

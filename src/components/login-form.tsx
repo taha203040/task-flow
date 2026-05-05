@@ -21,12 +21,16 @@ import { api } from "@/lib/api";
 import { useNavigate, Link } from "@tanstack/react-router";
 import { Spinner } from "./ui/spinner";
 import { toast } from "sonner";
+import { mockSignIn } from "@/lib/mockAuth";
 
 export function LoginForm({ className, ...props }: React.ComponentProps<"div">) {
   const [form, setForm] = useState({ email: "", password: "" });
   const navigate = useNavigate();
   const loginMutation = useMutation({
     mutationFn: async () => {
+      // Try mock credentials first (works without backend)
+      const mock = mockSignIn(form.email, form.password);
+      if (mock) return mock;
       const res = await api.post("/users/signin", form);
       return res.data;
     },
@@ -42,7 +46,9 @@ export function LoginForm({ className, ...props }: React.ComponentProps<"div">) 
       <Card>
         <CardHeader className="text-center">
           <CardTitle className="text-xl">Welcome back</CardTitle>
-          <CardDescription>Login with your Apple or Google account</CardDescription>
+          <CardDescription>
+            Demo: <strong>ah@gm.com</strong> / <strong>1234</strong>
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <form

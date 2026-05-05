@@ -35,11 +35,15 @@ export function NavUser({
 
   const handleLogout = async () => {
     try {
-      const res = await api.get("/auth/logout");
-      if (res.status === 200) {
-        toast.success("Logged out");
-        navigate({ to: "/login" });
+      const { mockSignOut } = await import("@/lib/mockAuth");
+      mockSignOut();
+      try {
+        await api.get("/auth/logout");
+      } catch {
+        // ignore network failure for mock sessions
       }
+      toast.success("Logged out");
+      navigate({ to: "/login" });
     } catch (err) {
       console.error(err);
     }
