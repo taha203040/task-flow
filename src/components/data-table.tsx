@@ -122,7 +122,7 @@ export const schema = z.object({
   // reviewer: z.string(),
 });
 import { useState } from "react";
-import { api } from "@/lib/axios";
+import { api } from "@/lib/api";
 import { useMutation } from "@tanstack/react-query";
 import { TaskPriority, TaskStatus } from "@/utils/enums";
 import { DialogClose } from "@radix-ui/react-dialog";
@@ -417,7 +417,7 @@ export function DataTable({
             <Select>
               <SelectTrigger
                 className="w-38 **:data-[slot=select-value]:block **:data-[slot=select-value]:truncate"
-                size="sm"
+               
                 id={`${row.original.id}-reviewer`}
               >
                 <SelectValue placeholder="Assign reviewer" />
@@ -565,7 +565,7 @@ export function DataTable({
         <Select defaultValue="outline">
           <SelectTrigger
             className="flex w-fit @4xl/main:hidden"
-            size="sm"
+           
             id="view-selector"
           >
             <SelectValue placeholder="Select a view" />
@@ -590,7 +590,7 @@ export function DataTable({
         <div className="flex items-center gap-2">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm">
+              <Button variant="outline">
                 <IconLayoutColumns />
                 <span className="hidden lg:inline">Customize Columns</span>
                 <span className="lg:hidden">Columns</span>
@@ -621,13 +621,13 @@ export function DataTable({
                 })}
             </DropdownMenuContent>
           </DropdownMenu>
-          {/* <Button variant="outline" size="sm"> */}
+          {/* <Button variant="outline"> */}
           {/* <IconPlus /> */}
           {/* <span className="hidden lg:inline">Create Task</span> */}
 
           <Dialog>
             <DialogTrigger asChild>
-              <Button variant="outline" size="sm">
+              <Button variant="outline">
                 <IconPlus />
                 <span className="hidden lg:inline">Create Task</span>
                 <span className="lg:hidden">Create</span>
@@ -837,7 +837,7 @@ export function DataTable({
                   table.setPageSize(Number(value));
                 }}
               >
-                <SelectTrigger size="sm" className="w-20" id="rows-per-page">
+                <SelectTrigger className="w-20" id="rows-per-page">
                   <SelectValue
                     placeholder={table.getState().pagination.pageSize}
                   />
