@@ -46,7 +46,9 @@ export function LoginForm({ className, ...props }: React.ComponentProps<"div">) 
       <Card>
         <CardHeader className="text-center">
           <CardTitle className="text-xl">Welcome back</CardTitle>
-          <CardDescription>Login with your Apple or Google account</CardDescription>
+          <CardDescription>
+            Demo: <strong>ah@gm.com</strong> / <strong>1234</strong>
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <form
