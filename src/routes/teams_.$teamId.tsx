@@ -23,6 +23,7 @@ function TeamDetail() {
   if (!team) return <div className="py-24 text-center"><p className="text-muted-foreground">Team not found.</p><Link to="/teams" className="mt-3 inline-block text-sm text-primary">Back to teams</Link></div>;
   const myRole = team.members.find(m => m.id === user.user_id)?.role;
   const canManage = myRole === "Owner" || myRole === "Admin";
+  console.log('the right to edit',myRole,canManage,team.members,user)
   const projects = state.projects.filter(p => p.teamId === team.id);
   const pending = state.invitations.filter(i => i.teamId === team.id && i.status === "Pending");
   return <>
