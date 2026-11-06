@@ -9,7 +9,7 @@ import { projectProgress } from "@/lib/workspace-model";
 import { Button } from "@/components/ui/button";
 import { workspaceHead } from "@/lib/workspace-head";
 
-export const Route = createFileRoute("/projects/$projectId")({
+export const Route = createFileRoute("/projects_/$projectId")({
   head: () => workspaceHead("Project", "Project tasks, progress and members."),
   component: () => <WorkspacePage title="Project"><ProjectDetail /></WorkspacePage>,
 });

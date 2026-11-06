@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { workspaceHead } from "@/lib/workspace-head";
 import type { Member } from "@/lib/workspace-model";
 
-export const Route = createFileRoute("/teams/$teamId")({
+export const Route = createFileRoute("/teams_/$teamId")({
   head: () => workspaceHead("Team", "Team members, roles and projects."),
   component: () => <WorkspacePage title="Team"><TeamDetail /></WorkspacePage>,
 });

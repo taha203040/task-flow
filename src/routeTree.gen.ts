@@ -18,8 +18,8 @@ import { Route as MyTasksRouteImport } from './routes/my-tasks'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as InboxRouteImport } from './routes/inbox'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as TeamsTeamIdRouteImport } from './routes/teams.$teamId'
-import { Route as ProjectsProjectIdRouteImport } from './routes/projects.$projectId'
+import { Route as TeamsTeamIdRouteImport } from './routes/teams_.$teamId'
+import { Route as ProjectsProjectIdRouteImport } from './routes/projects_.$projectId'
 
 const TeamsRoute = TeamsRouteImport.update({
   id: '/teams',
@@ -67,14 +67,14 @@ const IndexRoute = IndexRouteImport.update({
   getParentRoute: () => rootRouteImport,
 } as any)
 const TeamsTeamIdRoute = TeamsTeamIdRouteImport.update({
-  id: '/$teamId',
-  path: '/$teamId',
-  getParentRoute: () => TeamsRoute,
+  id: '/teams_/$teamId',
+  path: '/teams/$teamId',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const ProjectsProjectIdRoute = ProjectsProjectIdRouteImport.update({
-  id: '/$projectId',
-  path: '/$projectId',
-  getParentRoute: () => ProjectsRoute,
+  id: '/projects_/$projectId',
+  path: '/projects/$projectId',
+  getParentRoute: () => rootRouteImport,
 } as any)
 
 export interface FileRoutesByFullPath {
@@ -83,10 +83,10 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/my-tasks': typeof MyTasksRoute
   '/profile': typeof ProfileRoute
-  '/projects': typeof ProjectsRouteWithChildren
+  '/projects': typeof ProjectsRoute
   '/settings': typeof SettingsRoute
   '/signup': typeof SignupRoute
-  '/teams': typeof TeamsRouteWithChildren
+  '/teams': typeof TeamsRoute
   '/projects/$projectId': typeof ProjectsProjectIdRoute
   '/teams/$teamId': typeof TeamsTeamIdRoute
 }
@@ -96,10 +96,10 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/my-tasks': typeof MyTasksRoute
   '/profile': typeof ProfileRoute
-  '/projects': typeof ProjectsRouteWithChildren
+  '/projects': typeof ProjectsRoute
   '/settings': typeof SettingsRoute
   '/signup': typeof SignupRoute
-  '/teams': typeof TeamsRouteWithChildren
+  '/teams': typeof TeamsRoute
   '/projects/$projectId': typeof ProjectsProjectIdRoute
   '/teams/$teamId': typeof TeamsTeamIdRoute
 }
@@ -110,12 +110,12 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/my-tasks': typeof MyTasksRoute
   '/profile': typeof ProfileRoute
-  '/projects': typeof ProjectsRouteWithChildren
+  '/projects': typeof ProjectsRoute
   '/settings': typeof SettingsRoute
   '/signup': typeof SignupRoute
-  '/teams': typeof TeamsRouteWithChildren
-  '/projects/$projectId': typeof ProjectsProjectIdRoute
-  '/teams/$teamId': typeof TeamsTeamIdRoute
+  '/teams': typeof TeamsRoute
+  '/projects_/$projectId': typeof ProjectsProjectIdRoute
+  '/teams_/$teamId': typeof TeamsTeamIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -155,8 +155,8 @@ export interface FileRouteTypes {
     | '/settings'
     | '/signup'
     | '/teams'
-    | '/projects/$projectId'
-    | '/teams/$teamId'
+    | '/projects_/$projectId'
+    | '/teams_/$teamId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -165,10 +165,12 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   MyTasksRoute: typeof MyTasksRoute
   ProfileRoute: typeof ProfileRoute
-  ProjectsRoute: typeof ProjectsRouteWithChildren
+  ProjectsRoute: typeof ProjectsRoute
   SettingsRoute: typeof SettingsRoute
   SignupRoute: typeof SignupRoute
-  TeamsRoute: typeof TeamsRouteWithChildren
+  TeamsRoute: typeof TeamsRoute
+  ProjectsProjectIdRoute: typeof ProjectsProjectIdRoute
+  TeamsTeamIdRoute: typeof TeamsTeamIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -236,44 +238,22 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/teams/$teamId': {
-      id: '/teams/$teamId'
-      path: '/$teamId'
+    '/teams_/$teamId': {
+      id: '/teams_/$teamId'
+      path: '/teams/$teamId'
       fullPath: '/teams/$teamId'
       preLoaderRoute: typeof TeamsTeamIdRouteImport
-      parentRoute: typeof TeamsRoute
+      parentRoute: typeof rootRouteImport
     }
-    '/projects/$projectId': {
-      id: '/projects/$projectId'
-      path: '/$projectId'
+    '/projects_/$projectId': {
+      id: '/projects_/$projectId'
+      path: '/projects/$projectId'
       fullPath: '/projects/$projectId'
       preLoaderRoute: typeof ProjectsProjectIdRouteImport
-      parentRoute: typeof ProjectsRoute
+      parentRoute: typeof rootRouteImport
     }
   }
 }
-
-interface ProjectsRouteChildren {
-  ProjectsProjectIdRoute: typeof ProjectsProjectIdRoute
-}
-
-const ProjectsRouteChildren: ProjectsRouteChildren = {
-  ProjectsProjectIdRoute: ProjectsProjectIdRoute,
-}
-
-const ProjectsRouteWithChildren = ProjectsRoute._addFileChildren(
-  ProjectsRouteChildren,
-)
-
-interface TeamsRouteChildren {
-  TeamsTeamIdRoute: typeof TeamsTeamIdRoute
-}
-
-const TeamsRouteChildren: TeamsRouteChildren = {
-  TeamsTeamIdRoute: TeamsTeamIdRoute,
-}
-
-const TeamsRouteWithChildren = TeamsRoute._addFileChildren(TeamsRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
@@ -281,10 +261,12 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   MyTasksRoute: MyTasksRoute,
   ProfileRoute: ProfileRoute,
-  ProjectsRoute: ProjectsRouteWithChildren,
+  ProjectsRoute: ProjectsRoute,
   SettingsRoute: SettingsRoute,
   SignupRoute: SignupRoute,
-  TeamsRoute: TeamsRouteWithChildren,
+  TeamsRoute: TeamsRoute,
+  ProjectsProjectIdRoute: ProjectsProjectIdRoute,
+  TeamsTeamIdRoute: TeamsTeamIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
