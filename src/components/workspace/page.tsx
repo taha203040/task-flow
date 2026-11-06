@@ -12,6 +12,16 @@ function Body({ children }: { children: ReactNode }) {
   return <>{children}</>;
 }
 
-export function WorkspacePage({ title, children }: { title: string; children: ReactNode }) {
-  return <ProtectedRoute><WorkspaceProvider><WorkspaceShell title={title}><Body>{children}</Body></WorkspaceShell></WorkspaceProvider></ProtectedRoute>;
+// src/components/workspace/page.tsx
+export function WorkspacePage({ title, children }) {
+  return (
+    <ProtectedRoute>
+      <WorkspaceProvider>
+        <WorkspaceShell title={title}>
+          <Body>{children}</Body>
+        </WorkspaceShell>
+      </WorkspaceProvider>
+    </ProtectedRoute>
+  );
 }
+
