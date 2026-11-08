@@ -74,7 +74,7 @@ export const Route = createFileRoute("/inbox")({
 
 function InboxView() {
   // Safe: this runs inside <WorkspaceProvider>
-  const { state, markRead, respond } = useWorkspace();
+  const { state, markRead, respond, activityError, reload } = useWorkspace();
 
   const pendingInvitations = state.invitations.filter(
     (inv) => inv.status === "Pending"
@@ -167,7 +167,12 @@ function InboxView() {
           </h2>
         </div>
 
-        {state.activity.length === 0 ? (
+        {activityError ? (
+          <div role="alert" className="space-y-3 border border-dashed p-6 text-center">
+            <p className="text-sm text-muted-foreground">{activityError}</p>
+            <Button variant="outline" size="sm" onClick={() => void reload()}>Try again</Button>
+          </div>
+        ) : state.activity.length === 0 ? (
           <div className="flex flex-col items-center justify-center rounded-xl border border-dashed py-12 text-center text-muted-foreground">
             <IconSparkles className="mb-2 size-8 opacity-40" />
             <p className="text-sm font-medium">Your activity feed is clear</p>

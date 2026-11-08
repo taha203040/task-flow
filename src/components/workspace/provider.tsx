@@ -14,6 +14,7 @@ import {
 import { toast } from "sonner";
 import { useNavigate } from "@tanstack/react-router";
 import { normalizeTask, taskPayload, normalizeMembers, mergeMembers, taskApiError } from "@/lib/task-adapter";
+import { normalizeActivity } from "@/lib/activity-adapter";
 
 const empty: Workspace = { teams: [], projects: [], tasks: [], activity: [], invitations: [] };
 type User = { user_id: string; username: string; email: string };
@@ -23,6 +24,7 @@ type Context = {
   demo: boolean;
   loading: boolean;
   error: string;
+  activityError: string;
   reload: () => Promise<void>;
   saveTeam: (team: Team) => Promise<void>;
   saveProject: (project: Project) => Promise<void>;
@@ -46,9 +48,11 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
   const [demo, setDemo] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [activityError, setActivityError] = useState("");
   const reload = async () => {
     const mock = getMockUser();
     if (mock) {
+      setActivityError("");
       setDemo(true);
       setUser(mock);
       setState((s) => (s.teams.length ? s : makeDemoWorkspace()));
@@ -59,14 +63,21 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
     setDemo(false);
     setLoading(true);
     setError("");
+    setActivityError("");
 
     try {
-      const [u, ts, ps, tasks, invs] = await Promise.all([
+      const [u, ts, ps, tasks, invs, activity] = await Promise.all([
         api.get("/users/info"),
         api.get("/teams"),
         api.get("/projects"),
         api.get("/tasks/"),
         api.get("/invites/user/").catch(() => ({ data: [] })),
+        api.get("/activity")
+          .then((response) => normalizeActivity(response.data))
+          .catch(() => {
+            setActivityError("Could not load recent activity. Please try again.");
+            return [];
+          }),
       ]);
 
       setUser(u.data);
@@ -123,6 +134,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
           icon: "Layout",
         })),
         tasks: rows(tasks.data, "tasks").map(normalizeTask),
+        activity,
         invitations,
       });
     } catch {
@@ -158,6 +170,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
     demo,
     loading,
     error,
+    activityError,
     reload,
     saveTeam: (team) =>
       action(async () => {
