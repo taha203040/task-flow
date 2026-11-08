@@ -13,7 +13,7 @@ function Body({ children }: { children: ReactNode }) {
 }
 
 // src/components/workspace/page.tsx
-export function WorkspacePage({ title, children }) {
+export function WorkspacePage({ title, children }: { title: string; children: ReactNode }) {
   return (
     <ProtectedRoute>
       <WorkspaceProvider>
