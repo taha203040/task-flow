@@ -12,6 +12,8 @@ import {
   type Member,
 } from "@/lib/workspace-model";
 import { toast } from "sonner";
+import { useNavigate } from "@tanstack/react-router";
+import { normalizeTask, taskPayload, normalizeMembers, mergeMembers, taskApiError } from "@/lib/task-adapter";
 
 const empty: Workspace = { teams: [], projects: [], tasks: [], activity: [], invitations: [] };
 type User = { user_id: string; username: string; email: string };
@@ -25,6 +27,7 @@ type Context = {
   saveTeam: (team: Team) => Promise<void>;
   saveProject: (project: Project) => Promise<void>;
   saveTask: (task: Task) => Promise<void>;
+  assignmentMembers: (projectId: string) => Promise<Member[]>;
   remove: (kind: "teams" | "projects" | "tasks", id: string) => Promise<void>;
   invite: (teamId: string, email: string, role: Member["role"]) => Promise<void>;
   respond: (id: string) => Promise<void>;
@@ -37,6 +40,7 @@ const id = () => crypto.randomUUID();
 const rows = (data: any, key: string): any[] =>
   Array.isArray(data) ? data : Array.isArray(data?.[key]) ? data[key] : [];
 export function WorkspaceProvider({ children }: { children: ReactNode }) {
+  const navigate = useNavigate();
   const [state, setState] = useState<Workspace>(empty);
   const [user, setUser] = useState<User>({ user_id: "", username: "", email: "" });
   const [demo, setDemo] = useState(false);
@@ -52,6 +56,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
       return;
     }
 
+    setDemo(false);
     setLoading(true);
     setError("");
 
@@ -117,31 +122,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
           memberIds: p.member_ids?.map(String) ?? [],
           icon: "Layout",
         })),
-        tasks: rows(tasks.data, "tasks").map((t) => ({
-          id: String(t.task_id ?? t.id),
-          projectId: String(t.project_id),
-          title: t.title,
-          description: t.description ?? "",
-          assigneeId: String(t.assignee_id ?? t.user_id ?? ""),
-          status:
-            (
-              {
-                TODO: "Todo",
-                IN_PROGRESS: "In Progress",
-                IN_REVIEW: "In Review",
-                COMPLETED: "Done",
-                DONE: "Done",
-              } as Record<string, Task["status"]>
-            )[t.status] ?? "Todo",
-          priority: (t.priority === "CRITICAL"
-            ? "Urgent"
-            : `${t.priority?.[0] ?? "M"}${t.priority?.slice(1).toLowerCase() ?? "edium"}`) as Task["priority"],
-          dueDate: t.due_date?.slice(0, 10) ?? "",
-          labels: t.labels ?? [],
-          createdAt: t.created_at ?? "",
-          comments: t.comments ?? [],
-          attachments: t.attachments ?? [],
-        })),
+        tasks: rows(tasks.data, "tasks").map(normalizeTask),
         invitations,
       });
     } catch {
@@ -167,7 +148,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
     try {
       await fn();
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Action failed. Please try again.");
+      toast.error(taskApiError(e).message);
       throw e;
     }
   };
@@ -235,49 +216,51 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
           );
         toast.success("Project saved");
       }),
+    assignmentMembers: async (projectId) => {
+      const project = state.projects.find(p => p.id === projectId);
+      if (!project) return [];
+      if (demo) return state.teams.find(t => t.id === project.teamId)?.members ?? [];
+      try {
+        const [projectResponse, teamResponse] = await Promise.all([
+          api.get(`/projects/${projectId}/members`),
+          api.get(`/members/t/${project.teamId}`),
+        ]);
+        return mergeMembers(normalizeMembers(projectResponse.data), normalizeMembers(teamResponse.data));
+      } catch (error) {
+        const failure = taskApiError(error);
+        if (failure.status === 401) void navigate({ to: "/login" });
+        throw failure;
+      }
+    },
     saveTask: (task) =>
       action(async () => {
-        validateAssignment(task, state.projects);
-        const exists = state.tasks.some((t) => t.id === task.id);
+        const previous = state.tasks.find(t => t.id === task.id);
+        const exists = Boolean(previous);
         if (!demo) {
-          // const payload = {
-          //   title: task.title,
-          //   description: task.description,
-          //   project_id: task.projectId,
-          //   status:
-          //     task.status === "Done" ? "COMPLETED" : task.status.toUpperCase().replaceAll(" ", "_"),
-          //   priority: task.priority === "Urgent" ? "CRITICAL" : task.priority.toUpperCase(),
-          //   due_date: task.dueDate || null,
-          // };
-          // if (task.assigneeId !== user.user_id || task.comments.length || task.attachments.length)
-          //   throw new Error(
-          //     "This server version does not support task assignment, comments or attachments yet.",
-          //   );
-          const payload = {
-            title: task.title,
-            description: task.description,
-            project_id: task.projectId,
-            status:
-              task.status === "Done" ? "COMPLETED" : task.status.toUpperCase().replaceAll(" ", "_"),
-            priority: task.priority === "Urgent" ? "CRITICAL" : task.priority.toUpperCase(),
-            due_date: task.dueDate || null,
-            assignee_id: task.assigneeId || null,
-          };
-          await (exists ? api.put(`/tasks/${task.id}`, payload) : api.post("/tasks/task", payload));
-          await reload();
-        } else
-          setState((s) =>
-            event(
-              {
-                ...s,
-                tasks: exists
-                  ? s.tasks.map((t) => (t.id === task.id ? task : t))
-                  : [...s.tasks, task],
-              },
-              `${user.username} ${exists ? "updated" : "created"} ${task.title} · ${task.status}`,
-              task.projectId,
-            ),
-          );
+          try {
+            let taskId = task.id;
+            if (exists) await api.put(`/tasks/${task.id}`, taskPayload(task, previous));
+            else {
+              const created = await api.post("/tasks/task", taskPayload(task));
+              taskId = created.data.task_id ?? created.data.task?.id;
+              if (!taskId) throw new Error("The server did not return the created task id.");
+            }
+            const response = await api.get(`/tasks/${taskId}`);
+            const saved = normalizeTask(response.data.task);
+            setState(s => ({ ...s, tasks: exists ? s.tasks.map(t => t.id === taskId ? saved : t) : [...s.tasks, saved] }));
+          } catch (error) {
+            const failure = taskApiError(error);
+            if (failure.status === 401) void navigate({ to: "/login" });
+            if (failure.status === 404 && exists) setState(s => ({ ...s, tasks: s.tasks.filter(t => t.id !== task.id) }));
+            throw failure;
+          }
+        } else {
+          const draft = { ...task, id: task.id || id(), creatorId: task.creatorId ?? user.user_id };
+          validateAssignment(draft, state.projects, state.teams);
+          const member = state.teams.flatMap(t => t.members).find(m => m.id === draft.assigneeId);
+          const saved = { ...draft, assignee: member ? { id: member.id, name: member.name } : null };
+          setState(s => event({ ...s, tasks: exists ? s.tasks.map(t => t.id === task.id ? saved : t) : [...s.tasks, saved] }, `${user.username} ${exists ? "updated" : "created"} ${task.title} · ${task.status}`, task.projectId));
+        }
         toast.success("Task saved");
       }),
     remove: (kind, itemId) =>

@@ -5,19 +5,23 @@ export const taskStatuses = ["Todo", "In Progress", "In Review", "Done"] as cons
 export const priorities = ["Low", "Medium", "High", "Urgent"] as const;
 export type Project = { id: string; teamId: string; name: string; description: string; status: typeof projectStatuses[number]; startDate: string; dueDate: string; memberIds: string[]; icon: string };
 export type Comment = { id: string; author: string; text: string; date: string };
-export type Task = { id: string; projectId: string; title: string; description: string; assigneeId: string; status: typeof taskStatuses[number]; priority: typeof priorities[number]; dueDate: string; labels: string[]; createdAt: string; comments: Comment[]; attachments: { name: string; url: string }[] };
+export type Task = { id: string; projectId: string; creatorId?: string; title: string; description: string; assigneeId: string; assignee?: { id: string; name: string; avatar?: string } | null; status: typeof taskStatuses[number]; priority: typeof priorities[number]; dueDate: string; labels: string[]; createdAt: string; comments: Comment[]; attachments: { name: string; url: string }[] };
 export type Activity = { id: string; text: string; date: string; projectId?: string; read: boolean };
-export type Invitation = { id: string; teamId: string; email: string; role: Member["role"]; status: "Pending" | "Accepted" };
+export type Invitation = { id: string; teamId: string; email: string; role: Member["role"]; status: "Pending" | "Accepted" | "Rejected" };
 export type Workspace = { teams: Team[]; projects: Project[]; tasks: Task[]; activity: Activity[]; invitations: Invitation[] };
 export const currentUserId = "mock-user-1";
 export function projectProgress(projectId: string, tasks: Task[]) {
   const items = tasks.filter(t => t.projectId === projectId);
   return items.length ? Math.round(items.filter(t => t.status === "Done").length / items.length * 100) : 0;
 }
-export function validateAssignment(task: Pick<Task, "projectId" | "assigneeId">, projects: Project[]) {
+export function validateAssignment(task: Pick<Task, "projectId" | "assigneeId" | "creatorId">, projects: Project[], teams: Team[] = []) {
+  if (!task.projectId) {
+    if (task.assigneeId && task.assigneeId !== task.creatorId) throw new Error("A task without a project can only be assigned to its creator.");
+    return;
+  }
   const project = projects.find(p => p.id === task.projectId);
   if (!project) throw new Error("Select an existing project.");
-  if (task.assigneeId && !project.memberIds.includes(task.assigneeId)) throw new Error("Assignee must be a project member.");
+  if (task.assigneeId && !project.memberIds.includes(task.assigneeId) && !teams.find(t => t.id === project.teamId)?.members.some(m => m.id === task.assigneeId)) throw new Error("Assignee must be a project or team member.");
 }
 export function acceptInvitation(state: Workspace, invitationId: string, member: Member): Workspace {
   const invitation = state.invitations.find(i => i.id === invitationId && i.status === "Pending");
@@ -57,7 +61,7 @@ export function makeDemoWorkspace(): Workspace {
   return {
     teams: [{ id: "design", name: "Design studio", description: "Building thoughtful digital experiences, together.", avatar: "DS", members }, { id: "engineering", name: "Engineering", description: "Making ambitious ideas work beautifully.", avatar: "EN", members: [members[0], members[2]] }],
     projects,
-    tasks: rows.map((r, i) => ({ id: `TSK-${101 + i}`, title: r[0], projectId: r[1], assigneeId: r[2], status: r[3], priority: r[4], dueDate: date(r[5]), labels: [r[6]], description: "Bring the latest exploration together and share it with the team for feedback.", createdAt: date(-7), comments: i === 0 ? [{ id: "c1", author: "Sarah Chen", text: "The new direction is looking great. Let's review the mobile layout too.", date: date(-1) }] : [], attachments: [] })),
+    tasks: rows.map((r, i) => ({ id: `TSK-${101 + i}`, title: r[0], projectId: r[1], assigneeId: r[2], creatorId: currentUserId, assignee: { id: r[2], name: members.find(m => m.id === r[2])?.name ?? r[2] }, status: r[3], priority: r[4], dueDate: date(r[5]), labels: [r[6]], description: "Bring the latest exploration together and share it with the team for feedback.", createdAt: date(-7), comments: i === 0 ? [{ id: "c1", author: "Sarah Chen", text: "The new direction is looking great. Let's review the mobile layout too.", date: date(-1) }] : [], attachments: [] })),
     activity: [
       { id: "a1", text: "Sarah Chen moved Review navigation structure to In Review", projectId: "website", date: new Date(today.getTime() - 1200000).toISOString(), read: false },
       { id: "a2", text: "James Miller assigned Build reusable button components", projectId: "website", date: new Date(today.getTime() - 3600000).toISOString(), read: false },

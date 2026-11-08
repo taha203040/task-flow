@@ -1,11 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { GalleryVerticalEnd } from "lucide-react";
 import { LoginForm } from "@/components/login-form";
+import { workspaceHead } from "@/lib/workspace-head";
 
 export const Route = createFileRoute("/login")({
-  head: () => ({
-    meta: [{ title: "Login — Tasky" }, { name: "description", content: "Sign in to Tasky." }],
-  }),
+  head: () => workspaceHead("Login", "Sign in to your Tasky workspace."),
   component: LoginPage,
 });
 
