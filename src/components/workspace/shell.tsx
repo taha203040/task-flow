@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useWorkspace } from "./provider";
-import { getMockUser, mockSignOut } from "@/lib/mockAuth";
 import { api } from "@/lib/api";
 export function Avatar({ name, small = false }: { name: string; small?: boolean }) { return <span title={name} className={`inline-flex shrink-0 items-center justify-center rounded-full border-2 border-card bg-accent font-semibold text-primary ${small ? "size-7 text-[10px]" : "size-9 text-xs"}`}>{name.split(" ").map(n => n[0]).slice(0, 2).join("")}</span>; }
 export function WorkspaceShell({ title, children }: { title: string; children: ReactNode }) {
@@ -18,7 +17,7 @@ export function WorkspaceShell({ title, children }: { title: string; children: R
   const navigate = useNavigate();
   const unread = state.activity.filter(a => !a.read).length;
   const links = [{ label: "Workspace", items: [{ title: "Overview", to: "/", icon: LayoutDashboard }, { title: "My tasks", to: "/my-tasks", icon: CircleCheck }, { title: "Inbox", to: "/inbox", icon: Inbox }] }, { label: "Organization", items: [{ title: "Teams", to: "/teams", icon: Users }, { title: "Projects", to: "/projects", icon: FolderKanban }] }, { label: "Personal", items: [{ title: "Settings", to: "/settings", icon: Settings }, { title: "Profile", to: "/profile", icon: UserRound }] }] as const;
-  async function logout() { if (getMockUser()) mockSignOut(); else await api.get("/auth/logout"); await navigate({ to: "/login" }); }
+  async function logout() { try { await api.get("/auth/logout"); } catch {} await navigate({ to: "/login" }); }
   return <div className="min-h-screen bg-background">
     {mobile && <div className="fixed inset-0 z-40 bg-foreground/40 lg:hidden" onClick={() => setMobile(false)} />}
     <aside className={`fixed inset-y-0 left-0 z-50 flex flex-col border-r border-border bg-card transition-all ${collapsed ? "lg:w-[76px]" : "lg:w-[244px]"} w-[244px] ${mobile ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}`}>

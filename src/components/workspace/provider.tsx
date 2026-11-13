@@ -1,6 +1,5 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import { api } from "@/lib/api";
-import { getMockUser } from "@/lib/mockAuth";
 import {
   acceptInvitation,
   validateAssignment,
@@ -49,16 +48,6 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
   const [error, setError] = useState("");
   const [activityError, setActivityError] = useState("");
   const reload = async () => {
-    const mock = getMockUser();
-    if (mock) {
-      setActivityError("");
-      setDemo(true);
-      setUser(mock);
-      setState((s) => s);
-      setLoading(false);
-      return;
-    }
-
     setDemo(false);
     setLoading(true);
     setError("");

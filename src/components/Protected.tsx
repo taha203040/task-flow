@@ -2,7 +2,6 @@ import { useEffect, useState, type ReactNode } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { api } from "@/lib/api";
 import { Spinner } from "./ui/spinner";
-import { isMockAuthed } from "@/lib/mockAuth";
 
 export default function ProtectedRoute({ children }: { children: ReactNode }) {
   const navigate = useNavigate();
@@ -11,11 +10,6 @@ export default function ProtectedRoute({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     (async () => {
-      if (isMockAuthed()) {
-        setAuthorized(true);
-        setLoading(false);
-        return;
-      }
       try {
         const res = await api.get("/auth/verify", { withCredentials: true });
         if (res.status === 200) setAuthorized(true);
