@@ -32,7 +32,7 @@ export function LoginForm({ className, ...props }: React.ComponentProps<"div">) 
     },
     onSuccess: () => {
       toast.success("Signed in successfully");
-      navigate({ to: "/" });
+      navigate({ to: "/dashboard" });
     },
     onError: () => toast.error("Incorrect email or password"),
   });
