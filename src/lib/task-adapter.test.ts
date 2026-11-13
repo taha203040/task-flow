@@ -1,7 +1,8 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { normalizeTask, normalizeMembers, taskPayload, mergeMembers, taskApiError } from "./task-adapter";
-import { makeDemoWorkspace, validateAssignment } from "./workspace-model";
+import { validateAssignment, type Project, type Team } from "./workspace-model";
+const fixture = () => ({ projects: [{ id: "website", teamId: "design", memberIds: ["a"] } as Project], teams: [{ id: "design", members: [{ id: "maya" }] } as Team] });
 
 const task = normalizeTask({ id: "server-id", title: "Fix login", user_id: "creator", assignee_id: null, assignee: null });
 test("null assignment does not fall back to the creator", () => {
@@ -35,11 +36,11 @@ test("unassigning sends an explicit null", () => {
   assert.equal(taskPayload(task, { ...task, assigneeId: "user-1" }).assignee_id, null);
 });
 test("demo assignment allows team members outside the project", () => {
-  const state = makeDemoWorkspace();
+  const state = fixture();
   assert.doesNotThrow(() => validateAssignment({ projectId: "website", assigneeId: "maya" }, state.projects, state.teams));
 });
 test("demo assignment rejects a user outside both project and team", () => {
-  const state = makeDemoWorkspace();
+  const state = fixture();
   assert.throws(() => validateAssignment({ projectId: "website", assigneeId: "outsider" }, state.projects, state.teams));
 });
 test("a projectless task can only be assigned to its creator", () => {

@@ -3,7 +3,6 @@ import { api } from "@/lib/api";
 import { getMockUser } from "@/lib/mockAuth";
 import {
   acceptInvitation,
-  makeDemoWorkspace,
   validateAssignment,
   type Workspace,
   type Team,
@@ -55,7 +54,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
       setActivityError("");
       setDemo(true);
       setUser(mock);
-      setState((s) => (s.teams.length ? s : makeDemoWorkspace()));
+      setState((s) => s);
       setLoading(false);
       return;
     }
