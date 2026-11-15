@@ -21,6 +21,7 @@ import { api } from "@/lib/api";
 import { Spinner } from "@/components/ui/spinner";
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { Mail, Lock, User, Eye, EyeOff } from "lucide-react";
 
 export function SignupForm({ className, ...props }: React.ComponentProps<"div">) {
   const [form, setForm] = useState({
@@ -29,6 +30,7 @@ export function SignupForm({ className, ...props }: React.ComponentProps<"div">)
     password: "",
     role: "admin",
   });
+  const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
   const registerUser = useMutation({
     mutationFn: async () => {
@@ -43,10 +45,10 @@ export function SignupForm({ className, ...props }: React.ComponentProps<"div">)
   });
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
-      <Card>
+      <Card className="shadow-xl shadow-indigo-500/5 backdrop-blur-sm">
         <CardHeader className="text-center">
           <CardTitle className="text-xl">Welcome to Tasky</CardTitle>
-          <CardDescription>Sign up with your Apple or Google account</CardDescription>
+          <CardDescription>Create your account to get started</CardDescription>
         </CardHeader>
         <CardContent>
           <form
@@ -69,31 +71,52 @@ export function SignupForm({ className, ...props }: React.ComponentProps<"div">)
               </FieldSeparator>
               <Field>
                 <FieldLabel htmlFor="email">Email</FieldLabel>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="m@example.com"
-                  required
-                  onChange={(e) => setForm({ ...form, email: e.target.value })}
-                />
+                <div className="relative">
+                  <Mail className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder="m@example.com"
+                    required
+                    className="pl-9"
+                    onChange={(e) => setForm({ ...form, email: e.target.value })}
+                  />
+                </div>
               </Field>
               <Field>
                 <FieldLabel htmlFor="username">Username</FieldLabel>
-                <Input
-                  type="text"
-                  required
-                  id="username"
-                  onChange={(e) => setForm({ ...form, username: e.target.value })}
-                />
+                <div className="relative">
+                  <User className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                  <Input
+                    type="text"
+                    required
+                    id="username"
+                    placeholder="johndoe"
+                    className="pl-9"
+                    onChange={(e) => setForm({ ...form, username: e.target.value })}
+                  />
+                </div>
               </Field>
               <Field>
                 <FieldLabel htmlFor="password">Password</FieldLabel>
-                <Input
-                  id="password"
-                  type="password"
-                  required
-                  onChange={(e) => setForm({ ...form, password: e.target.value })}
-                />
+                <div className="relative">
+                  <Lock className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                  <Input
+                    id="password"
+                    type={showPassword ? "text" : "password"}
+                    required
+                    className="pl-9 pr-10"
+                    onChange={(e) => setForm({ ...form, password: e.target.value })}
+                  />
+                  <button
+                    type="button"
+                    aria-label={showPassword ? "Hide password" : "Show password"}
+                    onClick={() => setShowPassword((v) => !v)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+                  </button>
+                </div>
               </Field>
               <Field>
                 <Button type="submit" disabled={registerUser.isPending}>
